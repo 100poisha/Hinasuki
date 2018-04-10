@@ -1,0 +1,150 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>ひなすきボタン</title>
+
+    <style>
+        html {
+            margin: 0;
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            height: 100%;
+            background: linear-gradient(#0ca3fd, #7ffcd0);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 16px;
+        }
+
+        #frame {
+            margin: auto;
+            position: absolute;
+            top: 0px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            width: 640px;
+            height: 300px;
+            background: white;
+            opacity: 0.9;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #count {
+            font-family: Arial sans-serif;
+            font-size: 36px;
+            margin: 20px 0px;
+        }
+
+        #hinasuki {
+            background: #5a5de6;
+            color: #FFF;
+            border-bottom-color: #494cd5;
+            font-size: 24px;
+            margin: 10px;
+            padding: 10px 40px;
+        }
+
+        #tweet {
+            background: #55acee;
+            color: #FFF;
+            border-bottom-color: #449bdd;
+        }
+
+        #about {
+            position: absolute;
+            right: 10px;
+            bottom: 0px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.5em 1em;
+            text-decoration: none;
+            border-bottom: solid 4px;
+            border-radius: 3px;
+            margin: 5px;
+        }
+
+            .button:active {
+                -ms-transform: translateY(4px);
+                -webkit-transform: translateY(4px);
+                transform: translateY(4px);
+                border-bottom: none;
+            }
+    </style>
+</head>
+<body>
+    <div id="frame">
+
+        <div id="counter" style="display:none;">
+            <h1>荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービスっス</h1>
+            <div id="count">{{ count }}</div>
+            <div style="height: 80px;">
+                <a id="hinasuki" class="button" href="#" v-on:click="add">ひなすき</a><br />
+            </div>
+            <div style="height: 50px;">
+                <a id="tweet" class="button" href="#" v-on:click="tweet">ツイートする</a><br />
+            </div>
+            <div id="about">
+                ひなすきボタン ver.0.1β <a href="~/Home/About">[ ABOUT ]</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
+    <script src="~/scripts/fetch.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script>
+        const updateSpan = 3000;
+
+        const counter = new Vue({
+            el: '#counter',
+            data: {
+                count: @ViewBag.Count,
+            },
+            created: function() {
+                this.update();
+            },
+            mounted: function () {
+                document.getElementById('counter').style.display = '';
+            },
+            methods: {
+                update: function () {
+                    @* Edge16ではfinallyがサポートされていないので、thenとcatchの両方に同じ処理を書く。 *@
+                    fetch('@Url.Content("~/api/Hinasuki")')
+                        .then(function (response) { return response.json(); })
+                        .then(function (count) {
+                            counter.count = Math.max(count, counter.count);
+                            setTimeout(counter.update, updateSpan);
+                        })
+                        .catch(function (error) { setTimeout(counter.update, updateSpan); });
+                },
+                add: function () {
+                    counter.count++;
+
+                    fetch('@Url.Content("~/api/Hinasuki")', { method: 'POST' })
+                        .catch(function (error) { });
+                },
+                tweet: function () {
+                    window.open('https://twitter.com/intent/tweet?text=荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービス「ひなすきボタン」ver.0.1β&url=http%3A%2F%2Fhinasuki.com',
+                        '',
+                        'width=650, height=450, menuber=no, toolbar=no, scrollbars=yes');
+                }
+            },
+        });
+    </script>
+</body>
+</html>
