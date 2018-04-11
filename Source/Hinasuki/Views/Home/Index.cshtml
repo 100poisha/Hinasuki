@@ -108,7 +108,7 @@
     <script src="~/scripts/fetch.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <script>
-        const updateSpan = 3000;
+        const fetchSpan = 3000;
 
         const counter = new Vue({
             el: '#counter',
@@ -116,21 +116,21 @@
                 count: @ViewBag.Count,
             },
             created: function() {
-                this.update();
+                this.fetchCount();
             },
             mounted: function () {
                 document.getElementById('counter').style.display = '';
             },
             methods: {
-                update: function () {
+                fetchCount: function () {
                     @* Edge16ではfinallyがサポートされていないので、thenとcatchの両方に同じ処理を書く。 *@
                     fetch('@Url.Content("~/api/Hinasuki")')
                         .then(function (response) { return response.json(); })
                         .then(function (count) {
                             counter.count = Math.max(count, counter.count);
-                            setTimeout(counter.update, updateSpan);
+                            setTimeout(counter.fetchCount, fetchSpan);
                         })
-                        .catch(function (error) { setTimeout(counter.update, updateSpan); });
+                        .catch(function (error) { setTimeout(counter.fetchCount, fetchSpan); });
                 },
                 add: function () {
                     counter.count++;
