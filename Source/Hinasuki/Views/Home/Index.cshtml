@@ -108,32 +108,78 @@
     <script src="~/scripts/fetch.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <script>
-        const updateSpan = 3000;
+        const fetchSpan = 3000;
 
         const counter = new Vue({
             el: '#counter',
             data: {
                 count: @ViewBag.Count,
+                realCount: @ViewBag.Count,
+
+                updating: false,
             },
             created: function() {
-                this.update();
+                this.fetchCount();
             },
             mounted: function () {
                 document.getElementById('counter').style.display = '';
+                this.updateCount();
             },
             methods: {
-                update: function () {
+                fetchCount: function () {
                     @* Edge16ではfinallyがサポートされていないので、thenとcatchの両方に同じ処理を書く。 *@
                     fetch('@Url.Content("~/api/Hinasuki")')
                         .then(function (response) { return response.json(); })
                         .then(function (count) {
-                            counter.count = Math.max(count, counter.count);
-                            setTimeout(counter.update, updateSpan);
+                            counter.realCount = Math.max(count, counter.realCount);
+                            setTimeout(counter.fetchCount, fetchSpan);
+
+                            if (!counter.updating &&
+                                counter.count !== counter.realCount) {
+                                counter.updateCount();
+                            }
                         })
-                        .catch(function (error) { setTimeout(counter.update, updateSpan); });
+                        .catch(function (error) { setTimeout(counter.fetchCount, fetchSpan); });
+                },
+                updateCount: function () {
+                    const diff = this.realCount - this.count;
+                    if (diff <= 0) {
+                        this.updating = false;
+                    } else {
+                        this.updating = true;
+
+                        @*
+                            差分の値を徐々に追加していくために、2次関数を使用して値を1追加するための更新間隔を決定する。
+                            更新間隔の最低値は5FPS(200ms)とする。
+                            更新間隔が60FPSよりも短い場合は1Frameに1追加する。
+                            更新間隔が60FPSを超える場合は、更新間隔は60FPSとして1Frameに2以上追加する。
+                        *@
+                        const calculateSpan = 200 / (0.02 * diff * diff + 1);
+
+                        const updateSpan = Math.max(Math.round(calculateSpan), 16); @* 最大60FPSに押さえる。 *@
+
+                        if (16 <= calculateSpan) {
+                            this.count += 1;
+                        } else {
+                            @*
+                                差が大きいほど指数関数的に更新間隔が小さくなる→指数関数的に追加する値が大きくなるため、
+                                ある地点で実際の値より遙かに大きな値を追加する事になる。
+                                そのため、最大で+99とする。
+                                この値が小さすぎて問題になる事はまず無いはず。
+
+                                また、最大値が固定だと増加パターンが見えてしまうので、ばらつきを持たせる。
+                            *@
+                            const addCount = 16 / calculateSpan;
+                            const limit = Math.random() * 29 + 70;
+                            this.count += Math.round(Math.min(addCount, limit));
+                        }
+
+                        setTimeout(this.updateCount, updateSpan);
+                    }
                 },
                 add: function () {
                     counter.count++;
+                    counter.realCount++;
 
                     fetch('@Url.Content("~/api/Hinasuki")', { method: 'POST' })
                         .catch(function (error) { });
