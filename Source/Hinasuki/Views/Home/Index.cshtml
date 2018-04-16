@@ -89,9 +89,9 @@
 <body>
     <div id="frame">
 
-        <div id="counter" style="display:none;">
+        <div id="counter">
             <h1>荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービスっス</h1>
-            <div id="count">{{ count }}</div>
+            <div id="count" v-text="count">@ViewBag.Count</div>
             <div style="height: 80px;">
                 <a id="hinasuki" class="button" href="#" v-on:click="add">ひなすき</a><br />
             </div>
@@ -122,7 +122,6 @@
                 this.fetchCount();
             },
             mounted: function () {
-                document.getElementById('counter').style.display = '';
                 this.updateCount();
             },
             methods: {
