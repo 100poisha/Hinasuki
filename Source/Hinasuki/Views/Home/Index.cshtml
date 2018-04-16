@@ -76,7 +76,15 @@
             border-bottom: solid 4px;
             border-radius: 3px;
             margin: 5px;
+            -ms-user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
+
+            .button:hover {
+                cursor: pointer;
+            }
 
             .button:active {
                 -ms-transform: translateY(4px);
@@ -93,10 +101,10 @@
             <h1>荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービスっス</h1>
             <div id="count">{{ count }}</div>
             <div style="height: 80px;">
-                <a id="hinasuki" class="button" href="#" v-on:click="add">ひなすき</a><br />
+                <div id="hinasuki" class="button" href="#" v-on:click="add">ひなすき</div><br />
             </div>
             <div style="height: 50px;">
-                <a id="tweet" class="button" href="#" v-on:click="tweet">ツイートする</a><br />
+                <div id="tweet" class="button" href="#" v-on:click="tweet">ツイートする</div><br />
             </div>
             <div id="about">
                 ひなすきボタン ver.0.3β <a href="~/Home/About">[ ABOUT ]</a>
