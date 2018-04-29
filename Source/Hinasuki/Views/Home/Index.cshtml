@@ -100,7 +100,7 @@
 
         <div id="counter">
             <h1>荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービスっス</h1>
-            <div id="count" v-text="count">@ViewBag.Count</div>
+            <div id="count" v-text="count">&nbsp;</div>
             <div style="height: 80px;">
                 <div id="hinasuki" class="button" href="#" v-on:click="add">ひなすき</div><br />
             </div>
@@ -119,19 +119,30 @@
     <script>
         const fetchSpan = 3000;
 
+        @* IE対応 *@
+        Math.log10 = Math.log10 || function (x) {
+            return Math.log(x) / Math.LN10;
+        };
+
+        const getLocalCount = function () {
+            const count = parseInt(localStorage.getItem('count'));
+            return isNaN(count) ? 0 : count;
+        };
+
+        const setLocalCount = function (count) {
+            localStorage.setItem('count', count);
+        }
+
         const counter = new Vue({
             el: '#counter',
             data: {
-                count: @ViewBag.Count,
-                realCount: @ViewBag.Count,
+                count: getLocalCount(),
+                realCount: getLocalCount(),
 
                 updating: false,
             },
             created: function() {
-                this.fetchCount();
-            },
-            mounted: function () {
-                this.updateCount();
+                setTimeout(this.fetchCount, 1000);
             },
             methods: {
                 fetchCount: function () {
@@ -140,6 +151,8 @@
                         .then(function (response) { return response.json(); })
                         .then(function (count) {
                             counter.realCount = Math.max(count, counter.realCount);
+                            setLocalCount(counter.realCount);
+
                             setTimeout(counter.fetchCount, fetchSpan);
 
                             if (!counter.updating &&
@@ -172,13 +185,13 @@
                             @*
                                 差が大きいほど指数関数的に更新間隔が小さくなる→指数関数的に追加する値が大きくなるため、
                                 ある地点で実際の値より遙かに大きな値を追加する事になる。
-                                そのため、最大で+99とする。
-                                この値が小さすぎて問題になる事はまず無いはず。
+                                そのため、差の値より一桁少ない10の倍数を上限とする。
 
                                 また、最大値が固定だと増加パターンが見えてしまうので、ばらつきを持たせる。
                             *@
                             const addCount = 16 / calculateSpan;
-                            const limit = Math.random() * 29 + 70;
+                            const scale = Math.max(Math.floor(Math.log10(diff)) - 2, 0);
+                            const limit = (Math.random() * 2.9 + 7) * Math.pow(10, scale);
                             this.count += Math.round(Math.min(addCount, limit));
                         }
 
