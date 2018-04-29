@@ -102,7 +102,7 @@
             <h1>荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービスっス</h1>
             <div id="count" v-text="count">@ViewBag.Count</div>
             <div style="height: 80px;">
-                <div id="hinasuki" class="button" href="#" v-on:click="add">ひなすき</div><br />
+                <div id="hinasuki" class="button" href="#" v-on:click="add" v-on:touchend="addTouchEnd">ひなすき</div><br />
             </div>
             <div style="height: 50px;">
                 <div id="tweet" class="button" href="#" v-on:click="tweet">ツイートする</div><br />
@@ -192,6 +192,20 @@
                     fetch('@Url.Content("~/api/Hinasuki")', { method: 'POST' })
                         .catch(function (error) { });
                 },
+                addTouchEnd: function (event) {
+                    this.add();
+                    @*
+                        iOSのSafariでは、viewportのuser-scalable=noの指定が無視され、常に拡大縮小が可能となる。
+                        ひなすきボタンを連打すると、要素のダブルタップと判定されるため、画面の拡大と縮小が連続して発生する。
+                        touchendイベントでevent.preventDefault();を呼び出すと拡大縮小は発生しなくなるが、
+                        clickイベント自体が発生しなくなる。
+                        そこで、ひなすきボタンのtouchendイベントを拾い、clickイベントと同じ処理を行った後でevent.preventDefault();を呼び出す。
+
+                        現在のところEdgeでも同様の問題が発生する上、Edgeのデフォルトではタッチイベント自体が発生しないため解決手段がない。
+                        Edgeユーザーでタッチ操作する人が少ないだろう事と、タッチイベントが有効になれば直るため、今のところ無視する。
+                    *@
+                    event.preventDefault();
+                }
                 tweet: function () {
                     window.open('https://twitter.com/intent/tweet?text=荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービス「ひなすきボタン」ver.1.0&url=http%3A%2F%2Fhinasuki.com',
                         '',
