@@ -42,17 +42,16 @@
                 <div id="tweet" class="button" href="#" v-on:click="tweet">ツイートする</div><br />
             </div>
             <div id="about">
-                ひなすきボタン ver.1.1.1 <a href="~/Home/About">[ ABOUT ]</a>
+                ひなすきボタン ver.2.0 <a href="~/Home/About">[ ABOUT ]</a>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
     <script src="~/scripts/fetch.js"></script>
+    <script src="~/scripts/signalr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <script>
-        const fetchSpan = 3000;
-
         @* IE対応 *@
         Math.log10 = Math.log10 || function (x) {
             return Math.log(x) / Math.LN10;
@@ -73,28 +72,54 @@
                 count: getLocalCount(),
                 realCount: getLocalCount(),
 
+                connection: null,
+
                 updating: false,
             },
-            created: function() {
-                setTimeout(this.fetchCount, 1000);
+            mounted: function () {
+                this.connection = new signalR.HubConnectionBuilder()
+                    .withUrl('/Hinasuki')
+                    .build();
+
+                this.connection.on('Hinasuki', function (count) {
+                    counter.realCount = count;
+
+                    if (!counter.updating && counter.count !== counter.realCount) {
+                        counter.updateCount();
+                    }
+                });
+
+                this.connection.on('UserCount', function (userCount) {
+                    console.log('User: ' + userCount);
+                });
+
+                this.connection.onclose(function (error) {
+                    console.log('onclose: ' + error);
+
+                    setTimeout(function () {
+                        counter.connect();
+                    }, 3000);
+                });
+
+                this.connect();
             },
+
             methods: {
-                fetchCount: function () {
-                    @* Edge16ではfinallyがサポートされていないので、thenとcatchの両方に同じ処理を書く。 *@
-                    fetch('@Url.Content("~/api/Hinasuki")')
-                        .then(function (response) { return response.json(); })
-                        .then(function (count) {
-                            counter.realCount = Math.max(count, counter.realCount);
-                            setLocalCount(counter.realCount);
-
-                            setTimeout(counter.fetchCount, fetchSpan);
-
-                            if (!counter.updating &&
-                                counter.count !== counter.realCount) {
-                                counter.updateCount();
-                            }
+                connect: function () {
+                    this.connection.start()
+                        .then(function () {
+                            counter.connection.send('GetStatus')
+                                .catch(function (error) {
+                                    console.log('GetStatus: ' + error);
+                                });
                         })
-                        .catch(function (error) { setTimeout(counter.fetchCount, fetchSpan); });
+                        .catch(function (error) {
+                            console.log('connection.start: ' + error);
+
+                            setTimeout(function () {
+                                counter.connect();
+                            }, 3000);
+                        });
                 },
                 updateCount: function () {
                     const diff = this.realCount - this.count;
@@ -133,11 +158,13 @@
                     }
                 },
                 add: function () {
-                    counter.count++;
-                    counter.realCount++;
-
-                    fetch('@Url.Content("~/api/Hinasuki")', { method: 'POST' })
-                        .catch(function (error) { });
+                    this.connection.send('AddCount')
+                        .then(function () {
+                            counter.count++;
+                        })
+                        .catch(function (error) {
+                            console.log('add: ' + error);
+                        });
                 },
                 addTouchEnd: function (event) {
                     this.add();
@@ -154,7 +181,7 @@
                     event.preventDefault();
                 },
                 tweet: function () {
-                    window.open('https://twitter.com/intent/tweet?text=荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービス「ひなすきボタン」ver.1.1.1&url=http%3A%2F%2Fhinasuki.com',
+                    window.open('https://twitter.com/intent/tweet?text=荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービス「ひなすきボタン」ver.2.0&url=http%3A%2F%2Fhinasuki.com',
                         '',
                         'width=650, height=450, menuber=no, toolbar=no, scrollbars=yes');
                 }
