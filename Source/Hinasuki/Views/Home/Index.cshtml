@@ -83,6 +83,7 @@
 
                 this.connection.on('Hinasuki', function (count) {
                     counter.realCount = count;
+                    setLocalCount(count);
 
                     if (!counter.updating && counter.count !== counter.realCount) {
                         counter.updateCount();
