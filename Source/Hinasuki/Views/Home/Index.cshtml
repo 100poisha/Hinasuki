@@ -50,11 +50,6 @@
     <script src="~/scripts/signalr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <script>
-        @* IE対応 *@
-        Math.log10 = Math.log10 || function (x) {
-            return Math.log(x) / Math.LN10;
-        };
-
         const getLocalCount = function () {
             const count = parseInt(localStorage.getItem('count'));
             return isNaN(count) ? 0 : count;
