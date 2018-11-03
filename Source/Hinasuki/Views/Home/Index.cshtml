@@ -47,16 +47,9 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/promise-polyfill@7/dist/polyfill.min.js"></script>
-    <script src="~/scripts/fetch.js"></script>
     <script src="~/scripts/signalr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="~/scripts/vue.min.js"></script>
     <script>
-        @* IE対応 *@
-        Math.log10 = Math.log10 || function (x) {
-            return Math.log(x) / Math.LN10;
-        };
-
         const getLocalCount = function () {
             const count = parseInt(localStorage.getItem('count'));
             return isNaN(count) ? 0 : count;
@@ -182,7 +175,7 @@
                     event.preventDefault();
                 },
                 tweet: function () {
-                    window.open('https://twitter.com/intent/tweet?text=荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービス「ひなすきボタン」ver.2.1&url=http%3A%2F%2Fhinasuki.com',
+                    window.open('https://twitter.com/intent/tweet?text=荒木比奈が好きという気持ちをシェアできる全く新しい画期的なWEBサービス「ひなすきボタン」ver.2.2&url=http%3A%2F%2Fhinasuki.com',
                         '',
                         'width=650, height=450, menuber=no, toolbar=no, scrollbars=yes');
                 }
