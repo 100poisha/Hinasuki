@@ -45,6 +45,7 @@ namespace Hinasuki
                 app.UseExceptionHandler("/Error");
             }
 
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseMvc(routes =>
